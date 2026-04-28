@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fruit Missile Game</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  margin:0;
+  background:#0f2a3a;
+  color:white;
+}
+
+.header{
+  text-align:center;
+  padding:10px;
+  font-size:20px;
+}
+
+.board-container{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  height:85vh;
+  gap:4px;
+  padding:4px;
+}
+
+.team{
+  background:#123f55;
+  border:2px solid #1c6b86;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+
+.team-title{
+  position:absolute;
+  top:5px;
+  font-weight:bold;
+  font-size:16px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(5, 50px);
+  grid-template-rows:repeat(5, 50px);
+  gap:3px;
+}
+
+.cell{
+  width:50px;
+  height:50px;
+  background:#1f6f8b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:11px;
+  text-align:center;
+}
+
+.cell.hit{ background:#ff4d4d; }
+.cell.miss{ background:#444; }
+
+.center-button{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  background:#ffd166;
+  color:black;
+  padding:12px 18px;
+  border:none;
+  border-radius:50px;
+  font-size:14px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.8);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.popup img{
+  max-width:80%;
+  max-height:80%;
+  border:5px solid white;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Fruit Missile Game</div>
+
+<div class="board-container">
+  <div class="team"><div class="team-title">TEAM 1</div><div class="grid" id="grid1"></div></div>
+  <div class="team"><div class="team-title">TEAM 2</div><div class="grid" id="grid2"></div></div>
+  <div class="team"><div class="team-title">TEAM 3</div><div class="grid" id="grid3"></div></div>
+  <div class="team"><div class="team-title">TEAM 4</div><div class="grid" id="grid4"></div></div>
+  <div class="team"><div class="team-title">TEAM 5</div><div class="grid" id="grid5"></div></div>
+  <div class="team"><div class="team-title">TEAM 6</div><div class="grid" id="grid6"></div></div>
+</div>
+
+<button class="center-button" onclick="showRandomImage()">QUESTION</button>
+
+<div class="popup" id="popup" onclick="closePopup()">
+  <img id="popupImg" src="">
+</div>
+
+<!-- SOUNDS -->
+<audio id="hitSound" src="https://www.soundjay.com/explosion/explosion-01.mp3" preload="auto"></audio>
+<audio id="missSound" src="https://www.soundjay.com/button/beep-10.mp3" preload="auto"></audio>
+<audio id="clickSound" src="https://www.soundjay.com/button/button-16.mp3" preload="auto"></audio>
+<audio id="whooshSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" preload="auto"></audio>
+
+<script>
+
+const fruits = ["🍎","🍌","🍇","🍊","🍉","🍓"];
+const housesPerTeam = 5; // easily adjustable
+
+const images = [
+"q1","q2","q3","q4","q5",
+"q6","q7","q8","q9","q10",
+"q11","q12","q13","q14","q15"
+];
+
+function playSound(id){
+  const sound = document.getElementById(id);
+  sound.currentTime = 0;
+  sound.play().catch(err => {
+    console.log("Sound play blocked:", err);
+  });
+}
+
+function createGrid(teamId){
+  const grid = document.getElementById(teamId);
+
+  // Pick fixed number of random unique positions
+  let housePositions = [];
+  while(housePositions.length < housesPerTeam){
+    let pos = Math.floor(Math.random()*25) + 1;
+    if(!housePositions.includes(pos)) housePositions.push(pos);
+  }
+
+  for(let i=1;i<=25;i++){
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+
+    let fruit = fruits[Math.floor(Math.random()*fruits.length)];
+    cell.innerHTML = fruit + " " + i;
+
+    cell.dataset.house = housePositions.includes(i) ? "1" : "0";
+
+    cell.onclick = function(){
+      if(cell.classList.contains("hit") || cell.classList.contains("miss")) return;
+
+      if(cell.dataset.house === "1"){
+        cell.classList.add("hit");
+        cell.innerHTML = "💥🏠";
+        playSound("hitSound");
+      } else {
+        cell.classList.add("miss");
+        cell.innerHTML = "❌";
+        playSound("missSound");
+      }
+    };
+
+    grid.appendChild(cell);
+  }
+}
+
+function showRandomImage(){
+  playSound("clickSound");
+
+  const imgName = images[Math.floor(Math.random()*images.length)];
+  document.getElementById("popupImg").src = "questions/" + imgName + ".png";
+  document.getElementById("popup").style.display = "flex";
+
+  setTimeout(() => {
+    playSound("whooshSound");
+  }, 120);
+}
+
+function closePopup(){
+  playSound("clickSound");
+  document.getElementById("popup").style.display = "none";
+}
+
+for(let i=1;i<=6;i++){
+  createGrid("grid"+i);
+}
+
+</script>
+
+</body>
+</html>
